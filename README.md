@@ -10,16 +10,66 @@ Playniteを同人ゲーム管理に特化させるための拡張群です。
 
 Playniteが持つゲームライブラリ、検索、タグ、画像、プレイ時間、起動管理などを活用し、同人ゲーム特有の面倒を拡張機能で解決します。
 
-## 目標
+## 開発方針の核
+
+DLsite/FANZA連携はゼロから作り直しません。
+
+既存のGPL-3.0プロジェクト [`erri120/Playnite.Extensions`](https://github.com/erri120/Playnite.Extensions) に含まれる `DLSiteMetadata`、`FanzaMetadata`、`Extensions.Common`、関連テストをベースに、現行Playnite・現行サイト仕様へ近代化して引き継ぐことを第一方針とします。
+
+その上で、このプロジェクト独自の機能として以下を追加します。
 
 - RPG Maker系ゲームのエンジン自動判定
 - セーブデータの自動検出、バックアップ、復元
-- バックアップ成功を確認してからゲーム本体を削除する `Archive & Remove`
 - ゲーム終了時の自動セーブバックアップ
-- DLsite作品のライブラリ・メタデータ連携
-- FANZA/DMM作品のライブラリ・メタデータ連携
-- 将来的な再ダウンロード、再インストール、セーブ自動復元
-- 将来的なWOLF RPG Editor、NScripter、KiriKiri、TyranoScript、Ren'Py等への対応
+- バックアップ成功を確認してからゲーム本体を削除する `Archive & Remove`
+- 将来的な購入ライブラリ同期、再ダウンロード、再インストール、セーブ自動復元
+
+つまり、**販売サイト対応は既存資産を活かし、セーブ保護・アーカイブ機能を新しく強化する**プロジェクトです。
+
+## Upstream
+
+主な移植元:
+
+- `erri120/Playnite.Extensions`
+- License: GNU GPL v3
+- Status: Archived
+
+既存実装には以下が含まれています。
+
+### DLsite
+
+- Metadata Provider
+- DLsite URL / RJ等の商品ID認識
+- 検索
+- タイトル
+- カテゴリ / ジャンル / タグ
+- 開発者情報
+- 発売日
+- Icon / Cover / Background
+- 言語・メタデータ割り当て設定
+- テスト
+
+### FANZA
+
+- Metadata Provider
+- FANZA URL認識 / 検索
+- タイトル
+- 開発者
+- ジャンル / タグ
+- Community Score
+- Icon / Cover / Background
+- Series
+- Release Date
+- 設定画面
+- テスト
+
+### GameManagement
+
+元リポジトリには、インストールディレクトリ容量の集計と、インストーラを持たないゲームのフォルダ削除型Uninstallもあります。
+
+この削除処理は `Archive & Remove` の参考にしますが、本プロジェクトでは安全要件を強化し、**セーブのバックアップ・検証が完了するまでゲーム本体の削除を許可しません。**
+
+詳細は [`docs/upstream-migration.md`](docs/upstream-migration.md) を参照してください。
 
 ## 基本設計
 
@@ -28,45 +78,53 @@ Playniteが持つゲームライブラリ、検索、タグ、画像、プレイ
 ```text
 Playnite
 |
-+-- DoujinTools          Playnite Generic Plugin
++-- DLSiteMetadata       upstreamベースのMetadata Plugin
+|
++-- FanzaMetadata        upstreamベースのMetadata Plugin
+|
++-- DoujinTools          新規 Generic Plugin
 |   +-- Engine Detection
 |   +-- Save Management
 |   +-- Archive & Remove
 |   +-- Playnite integration
 |
-+-- DLsite               Library / Metadata Plugin
++-- Extensions.Common    upstream共通コードを必要に応じて継承
 |
-+-- FANZA                Library / Metadata Plugin
-|
-+-- Doujin.Core          Playnite非依存のコアロジック
++-- Doujin.Core          Playnite非依存の新規コアロジック
 ```
 
-`Doujin.Core` は可能な限りPlaynite SDKに依存させません。Playnite側のAPI変更や将来のPlaynite 11対応時に、エンジン判定・セーブ管理ロジックを再利用しやすくするためです。
+`Doujin.Core` は可能な限りPlaynite SDKに依存させません。Playnite側のAPI変更や将来バージョン対応時に、エンジン判定・セーブ管理ロジックを再利用しやすくするためです。
 
 ## 想定リポジトリ構成
 
 ```text
 PlayniteDoujinExtensions/
 |-- src/
-|   |-- Doujin.Core/
+|   |-- Extensions.Common/     upstreamから必要部分を移植
+|   |-- DLSiteMetadata/        upstreamを近代化
+|   |-- FanzaMetadata/         upstreamを近代化
+|   |-- Doujin.Core/           新規
 |   |   |-- Engines/
 |   |   |-- Saves/
 |   |   |-- Archives/
 |   |   |-- Models/
 |   |   `-- Storage/
-|   |-- DoujinTools/
-|   |-- DLsite/
-|   `-- FANZA/
+|   `-- DoujinTools/           新規
 |-- tests/
+|   |-- DLSiteMetadata.Test/
+|   |-- FanzaMetadata.Test/
+|   `-- Doujin.Core.Tests/
 |-- docs/
 |-- .github/workflows/
 |-- AGENTS.md
 `-- README.md
 ```
 
+初回移植では不要な大規模リネームや全面書き直しを避け、upstreamとの差分を追いやすくします。
+
 ## 初期対応エンジン
 
-Phase 1ではRPG Maker系に絞ります。
+セーブ管理の最初の対象はRPG Maker系です。
 
 - RPG Maker 2000
 - RPG Maker 2003
@@ -93,7 +151,7 @@ MVPではセーブファイルの中身を解析しません。
 
 ## Archive & Remove
 
-このプロジェクトの中心機能です。
+このプロジェクトの中心的な新規機能です。
 
 ```text
 Engine Detection
@@ -115,49 +173,67 @@ Remove game files
 
 ## 開発ロードマップ
 
-### Phase 1 - DoujinTools MVP
+### Phase 1 - Existing Extension Modernization
 
-- Playnite Generic Pluginの土台
+最初に既存資産を使える状態へ戻します。
+
+- GPL-3.0 / attribution方針の確定
+- `Extensions.Common` の必要部分を移植
+- `DLSiteMetadata` とテストを移植
+- `FanzaMetadata` とテストを移植
+- 現行Playnite向けにSDK / manifest / buildを修正
+- 現行DLsite/FANZAでメタデータ取得を動作確認
+- 壊れているScraperのみ必要最小限修正
+- Playniteでパッケージを読み込み実機確認
+
+### Phase 2 - DoujinTools MVP
+
+- `Doujin.Core`
+- Playnite Generic Plugin
 - RPG Makerエンジン判定
 - セーブデータ検出
 - 手動バックアップ
 - 手動復元
-- コアロジックのテスト
 
-### Phase 2 - Archive / Automatic Backup
+### Phase 3 - Automatic Backup / Archive
 
 - ゲーム終了時バックアップ
 - 差分検出
 - バックアップ世代管理
 - ハッシュ検証
-- Archive & Remove
+- Backup History
+- `Archive & Remove`
 
-### Phase 3 - DLsite
+### Phase 4 - Store Library Integration
 
-- 既存Playnite DLsite拡張の調査
-- Metadata Provider
-- Library Import
-- 購入作品同期
+Metadata Providerの復旧とは分離して実装します。
 
-### Phase 4 - FANZA / DMM
-
-- Metadata Provider
-- Library Import
-- 購入作品同期
+- DLsite購入作品同期
+- FANZA購入作品同期
+- ローカルインストールとの紐付け
+- Store ID管理
 
 ### Phase 5 - Install Lifecycle
 
-- 再ダウンロード
-- 自動展開
+- 再取得支援
+- 自動展開 / インストール
 - セーブ自動復元
 - RTP / 互換ランタイム管理
 
-詳細は `docs/` を参照してください。
+詳細は [`docs/roadmap.md`](docs/roadmap.md) を参照してください。
 
-## 開発方針
+## ライセンス方針
+
+既存 `erri120/Playnite.Extensions` のGPL-3.0コードを改変・再利用する方針のため、このプロジェクトもGPL-3.0互換の形で公開・配布します。
+
+移植時には元コードの著作権表示・ライセンス条件を保持し、可能な範囲でupstreamの元パスや基準コミットを記録します。
+
+## 開発原則
 
 - Playnite本体はforkしない
-- 販売サイト固有コードをCoreへ入れない
+- DLsite/FANZAは既存実装を優先して再利用する
+- 初回移植で不要な全面リファクタリングをしない
+- 販売サイト固有コードをDoujin.Coreへ入れない
 - Playnite固有コードとCoreロジックを分離する
 - セーブバックアップ成功前にはゲーム本体を削除しない
 - セーブ形式の内容解析はMVPの対象外
@@ -165,12 +241,6 @@ Remove game files
 - 新しいEngine Detector / Save Locatorを後から追加しやすくする
 - 販売サイト連携が壊れてもセーブ管理機能は動作すること
 
-## Playnite開発メモ
-
-Playnite 10系の.NETプラグインは `extension.yaml` を必要とし、現行の公式テンプレートは .NET Framework 4.6.2 (`net462`) とPlayniteSDK 6.x系を使用しています。
-
-実装開始時はPlaynite Toolboxで生成される最新テンプレートを基準に、SDKバージョンとmanifest要件を確認してからプロジェクトファイルを固定します。
-
 ## Status
 
-設計・初期構成作成中。
+Phase 1: 既存DLsite/FANZA Playnite拡張の移植・近代化準備中。

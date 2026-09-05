@@ -1,8 +1,42 @@
 # Tests
 
-テストは主に `Doujin.Core` を対象とし、実際に購入したゲームデータをリポジトリへ含めない。
+## Phase 1
 
-テスト用ディレクトリ構成と最小ダミーファイルで以下を再現する。
+最初はupstreamから移植するMetadata Providerの既存テストを可能な限り復旧・再利用する。
+
+対象:
+
+- `DLSiteMetadata.Test`
+- `FanzaMetadata.Test`
+- 必要に応じてupstream `TestUtils`
+
+テストは以下を分離する。
+
+### Unit Tests
+
+CIで安定して実行可能なもの。
+
+- URL / Product ID parsing
+- Metadata mapping
+- Scrapper result parsing（fixture利用）
+- Settings behavior
+- error handling
+
+### Live Verification
+
+実サイトへのアクセスが必要な検証。
+
+- DLsite検索/作品Metadata取得
+- FANZA検索/作品Metadata取得
+- site HTML/API変更の検出
+
+Live verificationを通常のunit testへ混ぜず、サイト障害やネットワーク障害でCI全体が不安定にならないようにする。
+
+購入済み作品、cookie、ログイン情報、個人アカウント情報をテストリポジトリやCIへ含めない。
+
+## Doujin.Core / DoujinTools
+
+Phase 2以降は実際に購入したゲームデータをリポジトリへ含めず、テスト用ディレクトリ構成と最小ダミーファイルで以下を再現する。
 
 - RPG Maker各世代のエンジン判定
 - セーブファイル検出
