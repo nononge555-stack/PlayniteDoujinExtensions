@@ -1,0 +1,41 @@
+# Visual Studio / .NET
+.vs/
+.vscode/
+.idea/
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+packages/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+
+# Playnite extension build output
+publish/
+*.pext
+
+# Test output
+TestResults/
+coverage/
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Local save/archive data - never commit user saves
+SaveArchive/
+saves/
+backups/
+
+# Logs / temporary
+*.log
+*.tmp
+*.bak
