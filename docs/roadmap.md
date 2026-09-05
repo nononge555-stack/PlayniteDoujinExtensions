@@ -6,12 +6,69 @@
 - [x] Core / Playnite / Storeの責務分離
 - [x] セーブ安全要件の明文化
 - [x] RPG Maker初期対応範囲の決定
-- [ ] ライセンス方針確定
-- [ ] Playnite Toolboxから最新Generic Pluginテンプレート生成
-- [ ] Solution / Project作成
+- [x] upstream候補の特定: `erri120/Playnite.Extensions`
+- [x] upstreamライセンス確認: GPL-3.0
+- [x] DLsite/FANZA既存構成調査
+- [x] upstream-first方針の決定
+- [ ] リポジトリへGPL-3.0ライセンス本文・attributionを追加
 - [ ] CI作成
 
-## Phase 1 - DoujinTools MVP
+## Phase 1 - Existing Extension Modernization
+
+目標: 既存のDLsite/FANZA Playnite Metadata Providerを、現行環境でビルド・利用できる状態へ戻す。
+
+### 1.1 Import / Build Baseline
+
+- [ ] upstream基準commitを決めて記録
+- [ ] `Extensions.Common` の必要部分を移植
+- [ ] `DLSiteMetadata` を移植
+- [ ] `DLSiteMetadata.Test` を移植
+- [ ] `FanzaMetadata` を移植
+- [ ] `FanzaMetadata.Test` を移植
+- [ ] 既存著作権表示・GPL情報を保持
+- [ ] Solution / Project referencesを再構成
+- [ ] 現行Playnite SDKへ合わせてビルド修正
+- [ ] `extension.yaml` を現行要件へ合わせる
+- [ ] CIでbuild/test可能にする
+
+### 1.2 DLsite Runtime Verification
+
+- [ ] Playniteへ拡張をロード
+- [ ] DLsite URL認識
+- [ ] RJ等の商品ID認識
+- [ ] 検索
+- [ ] タイトル取得
+- [ ] 開発者/サークル関連情報取得
+- [ ] タグ/ジャンル/カテゴリ取得
+- [ ] 発売日取得
+- [ ] Icon / Cover / Background取得
+- [ ] 言語設定確認
+- [ ] 既存テスト修正/追加
+- [ ] サイト仕様変更によるScraper破損を必要最小限修正
+
+### 1.3 FANZA Runtime Verification
+
+- [ ] Playniteへ拡張をロード
+- [ ] FANZA URL認識
+- [ ] 検索
+- [ ] タイトル取得
+- [ ] 開発者情報取得
+- [ ] ジャンル/タグ取得
+- [ ] Community Score取得
+- [ ] Icon / Cover / Background取得
+- [ ] Series取得
+- [ ] Release Date取得
+- [ ] 既存テスト修正/追加
+- [ ] サイト仕様変更によるScraper破損を必要最小限修正
+
+### Phase 1 Exit Criteria
+
+- DLsite/FANZA両拡張が現行Playniteでロードできる
+- 最低限のMetadata取得が実サイトで成功する
+- build/testがCIで再現可能
+- upstreamとの差分が追跡できる
+
+## Phase 2 - DoujinTools MVP
 
 目標: Playniteに既に登録されているツクールゲームのセーブを手動管理できる。
 
@@ -34,7 +91,7 @@
 - [ ] ゲーム単位のEngine/Save Path上書き
 - [ ] Unit tests
 
-## Phase 2 - Automatic Backup / Archive
+## Phase 3 - Automatic Backup / Archive
 
 目標: プレイ終了後のセーブ保護と、安全なゲーム本体削除を実現する。
 
@@ -45,33 +102,35 @@
 - [ ] バックアップ世代管理
 - [ ] Backup History UI
 - [ ] Archive manifest
+- [ ] upstream `GameManagement` の削除処理を参考にPlaynite連携を実装
 - [ ] `Archive & Remove`
 - [ ] 削除前確認UI
 - [ ] バックアップ失敗時に削除されないことのテスト
 - [ ] 復元前の既存セーブ保護
 
-## Phase 3 - DLsite
+## Phase 4 - Store Library Integration
 
-目標: DLsite作品をPlayniteライブラリへ自然に統合する。
+目標: Metadata Providerとは別に、購入済み作品をPlayniteライブラリへ取り込めるようにする。
 
-- [ ] 既存Playnite DLsite拡張調査
-- [ ] 既存OSSとライセンス調査
-- [ ] 現行DLsite仕様調査
-- [ ] Metadata Provider
-- [ ] Library Plugin
+### DLsite
+
+- [ ] 現行の購入履歴/ライブラリ取得方法調査
+- [ ] account/session方針
+- [ ] Library Plugin設計
+- [ ] 購入作品同期
 - [ ] RJ番号管理
-- [ ] 購入作品同期
 - [ ] ローカルインストールとの紐付け
-- [ ] カバー/サークル/タグ等の取得
 
-## Phase 4 - FANZA / DMM
+### FANZA / DMM
 
-- [ ] 既存Playnite FANZA拡張調査
-- [ ] 現行サイト仕様・利用条件調査
-- [ ] Metadata Provider
-- [ ] Library Plugin
+- [ ] 現行の購入履歴取得方法・利用条件調査
+- [ ] account/session方針
+- [ ] Library Plugin設計
 - [ ] 購入作品同期
+- [ ] 商品ID管理
 - [ ] ローカルインストールとの紐付け
+
+Metadata Providerの復旧を購入履歴同期の完成待ちにしない。
 
 ## Phase 5 - Install Lifecycle
 
